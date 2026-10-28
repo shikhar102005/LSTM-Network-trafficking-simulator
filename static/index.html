@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetForecaster - LSTM Internet Traffic Forecasting</title>
+    <!-- Modern Bold Typography: Outfit & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Floating Retro Letter Badges (from Reference Image 2) -->
+    <div class="floating-sticker letter-badge badge-h">H</div>
+    <div class="floating-sticker letter-badge badge-c">C</div>
+    <div class="floating-sticker letter-badge badge-e">E</div>
+    <div class="floating-sticker letter-badge badge-f">F</div>
+    <div class="floating-sticker letter-badge badge-i">I</div>
+
+    <!-- Floating Doodles (Paper plane & notepad) -->
+    <svg class="floating-sticker doodle-notepad" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 15 H75 V85 H20 Z" fill="#ffffff" stroke="#000000" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="30" y1="30" x2="65" y2="30" stroke="#000000" stroke-width="2"/>
+        <line x1="30" y1="42" x2="65" y2="42" stroke="#000000" stroke-width="2"/>
+        <line x1="30" y1="54" x2="65" y2="54" stroke="#000000" stroke-width="2"/>
+        <!-- Red Pencil -->
+        <polygon points="70,55 90,75 85,80 65,60" fill="#f87171" stroke="#000000" stroke-width="2"/>
+        <polygon points="65,60 60,65 65,63" fill="#fde047" stroke="#000000" stroke-width="1.5"/>
+    </svg>
+
+    <svg class="floating-sticker doodle-plane" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 55 L95 20 L55 95 L45 65 Z" fill="#f97316" stroke="#000000" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M95 20 L45 65" stroke="#000000" stroke-width="3"/>
+        <path d="M10 90 Q 25 70 35 85 T 60 70" stroke="#000000" stroke-width="2" stroke-dasharray="4 3"/>
+    </svg>
+
+    <div class="app-wrapper">
+        <!-- Top Navigation Bar (Image 2 style) -->
+        <header class="top-bar">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="brand-hexagon">⚡</div>
+                <button id="slotViewBtn" class="pill-btn pill-yellow">Model View</button>
+            </div>
+
+            <div class="alert-banner">
+                ⚡ <strong>Telemetry Live:</strong> Ingesting GÉANT Backbone & ISP Direct Connect Traces. SLA Asymmetric Loss Enabled!
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button id="toggleTheoryBtn" class="pill-btn pill-blue">Saved Architecture</button>
+                <button id="runInferenceBtn" class="pill-btn pill-mint">Run Predictor</button>
+            </div>
+        </header>
+
+        <!-- Hero Section (Image 2 style) -->
+        <section class="hero-section">
+            <!-- 3D Isometric Network Cube Icon -->
+            <svg class="isometric-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Top Face -->
+                <polygon points="50,15 85,32 50,50 15,32" fill="#a5f3fc" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+                <!-- Left Face -->
+                <polygon points="15,32 50,50 50,85 15,67" fill="#67e8f9" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+                <!-- Right Face -->
+                <polygon points="50,50 85,32 85,67 50,85" fill="#0891b2" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+                <!-- Internal Grid Lines -->
+                <line x1="50" y1="27" x2="33" y2="36" stroke="#000000" stroke-width="2.5"/>
+                <line x1="50" y1="27" x2="67" y2="36" stroke="#000000" stroke-width="2.5"/>
+                <line x1="50" y1="62" x2="27" y2="47" stroke="#000000" stroke-width="2.5"/>
+                <line x1="50" y1="62" x2="73" y2="47" stroke="#000000" stroke-width="2.5"/>
+            </svg>
+
+            <h1 class="hero-title">NetForecaster</h1>
+            <p class="hero-subtitle">LSTM Internet Traffic Forecasting & Dynamic Bandwidth Prediction!</p>
+            <a href="#chartSection" class="pill-btn hero-start-btn">Start &darr;</a>
+        </section>
+
+        <!-- Keyboard Capsule Container (Image 2 bottom container) -->
+        <section class="keyboard-card">
+            <!-- Row 1: Network Profile Selection -->
+            <div class="capsule-row">
+                <span class="capsule-label">Network Topology:</span>
+                <button class="key-pill" data-dataset="geant_backbone" id="pillGeant">GÉANT Backbone (Real Data)</button>
+                <button class="key-pill active" data-dataset="isp_backbone" id="pillIsp">Tier-1 ISP Backbone</button>
+                <button class="key-pill" data-dataset="cloud_egress" id="pillCloud">Cloud Direct Connect</button>
+                <button class="key-pill" data-dataset="datacenter_fabric" id="pillDc">Data Center Spine-Leaf</button>
+            </div>
+
+            <!-- Row 2: Evaluation Mode & Parameters -->
+            <div class="capsule-row">
+                <span class="capsule-label">Graph Mode:</span>
+                <button class="key-pill active" id="modeTestEval">Test Set: Ground Truth Overlay</button>
+                <button class="key-pill" id="modeFuture">Live Horizon Projection</button>
+                <span class="capsule-label" style="margin-left: 0.5rem;">Quick Horizon:</span>
+                <button class="key-pill" data-h="3">3h</button>
+                <button class="key-pill active" data-h="6">6h</button>
+                <button class="key-pill" data-h="12">12h</button>
+            </div>
+        </section>
+
+        <!-- KPI Metric Cards Grid (Neo-Brutalist Cards) -->
+        <section class="kpi-row">
+            <div class="retro-kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">Current Telemetry</span>
+                    <span class="kpi-icon">📡</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span id="kpiCurrentTraffic" class="kpi-val">--</span>
+                    <span class="kpi-unit">Gbps</span>
+                </div>
+                <span id="kpiUtilizationBadge" class="kpi-badge badge-blue">Util: --% of -- Gbps</span>
+            </div>
+
+            <div class="retro-kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">1-Hour Ahead Forecast</span>
+                    <span class="kpi-icon">📈</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span id="kpiForecastValue" class="kpi-val">--</span>
+                    <span class="kpi-unit">Gbps</span>
+                </div>
+                <span id="kpiDeltaBadge" class="kpi-badge badge-green">Calculating...</span>
+            </div>
+
+            <div class="retro-kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">SLA Congestion Risk</span>
+                    <span class="kpi-icon">🛡️</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span id="kpiSlaStatus" class="kpi-val" style="font-size: 1.8rem;">OPTIMAL</span>
+                </div>
+                <span id="kpiUnderPredBadge" class="kpi-badge badge-yellow">SLA Under-Pred: --%</span>
+            </div>
+
+            <div class="retro-kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">Dynamic Cost Savings</span>
+                    <span class="kpi-icon">💡</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span id="kpiCostSavings" class="kpi-val">--%</span>
+                </div>
+                <span class="kpi-badge badge-coral">Headroom Saved vs 24/7 Peak</span>
+            </div>
+        </section>
+
+        <!-- Main Forecast Window Frame (Image 3 exact aesthetic) -->
+        <section class="retro-window" id="chartSection">
+            <div class="window-header">
+                <div class="window-dots">
+                    <div class="window-dot"></div>
+                    <div class="window-dot"></div>
+                    <div class="window-dot"></div>
+                </div>
+                <span class="window-title">Real-Time Telemetry & Actual vs Forecast Envelope</span>
+            </div>
+
+            <div class="window-body">
+                <div class="chart-meta-bar">
+                    <div class="chart-legend-row">
+                        <span class="legend-badge">
+                            <span class="legend-square sq-actual"></span>
+                            <span id="legendActualText">Actual Telemetry (Ground Truth)</span>
+                        </span>
+                        <span class="legend-badge">
+                            <span class="legend-square sq-forecast"></span>
+                            <span>LSTM Multi-Step Forecast</span>
+                        </span>
+                        <span class="legend-badge">
+                            <span class="legend-square sq-headroom"></span>
+                            <span>Dynamic SDN Headroom</span>
+                        </span>
+                        <span class="legend-badge">
+                            <span class="legend-square sq-capacity"></span>
+                            <span>Physical Link Capacity</span>
+                        </span>
+                    </div>
+
+                    <div style="display: flex; gap: 0.6rem; align-items: center;">
+                        <button id="surgeBtn" class="pill-btn pill-coral" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
+                            💥 Simulate Surge / DDoS
+                        </button>
+                        <button id="resetTelemetryBtn" class="pill-btn pill-white" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+                            🔄 Reset Telemetry
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Chart Canvas -->
+                <div class="chart-canvas-box">
+                    <canvas id="mainForecastChart"></canvas>
+                </div>
+
+                <!-- Step-by-Step Actual vs Forecast Verification Chips -->
+                <div class="step-verify-box" id="stepVerifyContainer">
+                    <div class="step-verify-header">
+                        <span>🎯 Real-Time Step-by-Step Accuracy Verification (Actual vs LSTM):</span>
+                        <span id="verifyModeTag" style="font-size: 0.75rem; background: #fef08a; padding: 0.2rem 0.5rem; border: 1.5px solid #000; border-radius: 6px;">Ground Truth Test Overlay</span>
+                    </div>
+                    <div class="steps-chips-grid" id="stepsChipsGrid">
+                        <!-- Populated dynamically via dashboard.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sub Grid: Interactive Controls & Secondary Benchmarks -->
+        <section class="sub-grid">
+            <!-- Interactive Parameters Control Card -->
+            <div class="control-card">
+                <h3 class="card-heading">Orchestration Controls</h3>
+
+                <div class="control-field">
+                    <div class="control-field-head">
+                        <label for="horizonRange">Forecast Horizon:</label>
+                        <span id="horizonVal" style="font-weight: 800; color: #0284c7;">6 Hours</span>
+                    </div>
+                    <input type="range" id="horizonRange" min="1" max="12" value="6" step="1" class="neo-slider">
+                </div>
+
+                <div class="control-field">
+                    <div class="control-field-head">
+                        <label for="headroomRange">SDN Safety Headroom:</label>
+                        <span id="headroomVal" style="font-weight: 800; color: #10b981;">15%</span>
+                    </div>
+                    <input type="range" id="headroomRange" min="5" max="35" value="15" step="1" class="neo-slider">
+                </div>
+
+                <div class="control-field">
+                    <div class="control-field-head">
+                        <label for="offsetRange">Historical Window Scrubber:</label>
+                        <span id="offsetVal" style="font-weight: 800; color: #d97706;">Latest Window</span>
+                    </div>
+                    <input type="range" id="offsetRange" min="0" max="96" value="0" step="6" class="neo-slider">
+                    <small style="font-size: 0.72rem; color: #6b7280;">Slide to evaluate past peak hours or weekend rushes against actual ground truth!</small>
+                </div>
+
+                <div class="action-row">
+                    <button id="applyParamsBtn" class="pill-btn pill-yellow" style="flex: 1; justify-content: center;">
+                        Apply Configuration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Secondary Visualizations: Architecture Benchmarks -->
+            <div class="retro-window">
+                <div class="window-header" style="background-color: var(--pastel-blue);">
+                    <div class="window-dots">
+                        <div class="window-dot"></div>
+                        <div class="window-dot"></div>
+                        <div class="window-dot"></div>
+                    </div>
+                    <span class="window-title">Model Benchmarks (RMSE vs MAE)</span>
+                </div>
+                <div class="window-body" style="padding: 1rem 1.25rem;">
+                    <div style="height: 230px; position: relative;">
+                        <canvas id="benchmarkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Academic Benchmark Table Window -->
+        <section class="table-window">
+            <div class="table-header-bar">
+                <div class="window-dots">
+                    <div class="window-dot"></div>
+                    <div class="window-dot"></div>
+                    <div class="window-dot"></div>
+                </div>
+                <span class="window-title" style="color: #000000;">Comprehensive Model Benchmark Table</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="neo-table" id="benchmarkTable">
+                    <thead>
+                        <tr>
+                            <th>Model Architecture</th>
+                            <th>RMSE (Gbps)</th>
+                            <th>MAE (Gbps)</th>
+                            <th>MAPE (%)</th>
+                            <th>R² Score</th>
+                            <th>Peak MAE (Gbps)</th>
+                            <th>SLA Under-Pred (%)</th>
+                            <th>Inference Latency</th>
+                        </tr>
+                    </thead>
+                    <tbody id="benchmarkTableBody">
+                        <tr><td colspan="8" style="text-align: center; padding: 1.5rem;">Loading benchmark data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Surge Simulation Modal (Image 3 exact replica) -->
+        <div id="surgeModal" class="modal-backdrop hidden">
+            <div class="retro-modal-window">
+                <div class="modal-title-bar">
+                    <div class="window-dots">
+                        <div class="window-dot"></div>
+                        <div class="window-dot"></div>
+                        <div class="window-dot"></div>
+                    </div>
+                    <span class="modal-window-title">Inject Anomaly</span>
+                </div>
+                <div class="modal-content-area">
+                    <p class="modal-heading-text">Are you sure you want to inject this traffic surge?</p>
+                    <p id="surgeModalHighlight" class="modal-highlight-text">"Flash-Crowd Surge (+35 Gbps)"</p>
+                    
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+                        <label style="font-weight: 700; font-size: 0.85rem;">Select Anomaly Profile:</label>
+                        <select id="surgeTypeSelect" style="padding: 0.5rem 0.75rem; border: 2px solid #000; border-radius: 10px; font-weight: 700; font-family: inherit;">
+                            <option value="flash_crowd">Viral Live Streaming / Flash Crowd (+35 Gbps)</option>
+                            <option value="distributed_sync">Cross-Region Distributed DB Sync (+55 Gbps)</option>
+                            <option value="ddos_attack">Volumetric DDoS Attack (+80 Gbps)</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-button-row">
+                        <button id="cancelModalBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                        <button id="executeSurgeBtn" class="modal-btn modal-btn-remove">Inject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theory & Architecture Modal (Neo-Brutalist Frame) -->
+        <div id="theoryModal" class="modal-backdrop hidden">
+            <div class="retro-modal-window" style="max-width: 650px;">
+                <div class="modal-title-bar" style="background-color: var(--pastel-yellow);">
+                    <div class="window-dots">
+                        <div class="window-dot"></div>
+                        <div class="window-dot"></div>
+                        <div class="window-dot"></div>
+                    </div>
+                    <span class="modal-window-title">Model Architecture</span>
+                </div>
+                <div class="modal-content-area" style="text-align: left; max-height: 70vh; overflow-y: auto;">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; border-bottom: 2px solid #000; padding-bottom: 0.3rem;">1. Deep LSTM Formulation</h3>
+                    <p style="font-size: 0.88rem;">Multi-layer LSTM gating regulates temporal memory across 24-hour lookback windows:</p>
+                    <div style="background: #ffffff; border: 2px solid #000; padding: 0.75rem 1rem; border-radius: 10px; box-shadow: 2px 2px 0px #000; font-family: monospace; font-size: 0.8rem; line-height: 1.6;">
+                        f_t = &sigma;(W_f &middot; [h_{t-1}, x_t] + b_f) &emsp; (Forget Gate)<br>
+                        i_t = &sigma;(W_i &middot; [h_{t-1}, x_t] + b_i) &emsp; (Input Gate)<br>
+                        C_t = f_t &odot; C_{t-1} + i_t &odot; &Ccaron;_t &emsp; (Cell State)<br>
+                        h_t = o_t &odot; tanh(C_t) &emsp; (Hidden Output)
+                    </div>
+
+                    <h3 style="font-size: 1.1rem; font-weight: 800; border-bottom: 2px solid #000; padding-bottom: 0.3rem; margin-top: 0.8rem;">2. Asymmetric SLA Loss Penalty</h3>
+                    <p style="font-size: 0.88rem;">Penalizes under-prediction 2.5x more heavily than over-prediction:</p>
+                    <div style="background: #ffffff; border: 2px solid #000; padding: 0.75rem 1rem; border-radius: 10px; box-shadow: 2px 2px 0px #000; font-family: monospace; font-size: 0.8rem; line-height: 1.6;">
+                        L_SLA(y, &ycirc;) = &frac1N &sum; w_i &middot; (y_i - &ycirc;_i)^2<br>
+                        where w_i = 2.5 if y_i > &ycirc;_i (traffic exceeds headroom), else 1.0
+                    </div>
+
+                    <div class="modal-button-row" style="margin-top: 1rem;">
+                        <button id="closeTheoryBtn" class="modal-btn modal-btn-cancel" style="width: 100%;">Understood</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>NetForecaster: <strong>LSTM Internet Traffic Forecasting for Intelligent Bandwidth Prediction</strong></p>
+            <p style="font-size: 0.8rem; font-weight: 500; color: #6b7280; margin-top: 0.25rem;">GÉANT Backbone &bull; Tier-1 ISP Core &bull; Cloud Direct Connect &bull; Data Center Fabric</p>
+        </footer>
+    </div>
+
+    <!-- Application Controller -->
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

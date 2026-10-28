@@ -1,0 +1,86 @@
+{
+  "LSTM (Proposed)": {
+    "metrics": {
+      "rmse": 2.8898,
+      "mae": 1.8656,
+      "mape_pct": 12.37,
+      "r2_score": 0.7294,
+      "peak_traffic_mae": 5.1779,
+      "peak_traffic_mape": 19.13,
+      "under_prediction_rate_pct": 65.24,
+      "mean_deficit_gbps": 2.2499,
+      "max_error_gbps": 17.0801,
+      "inference_latency_ms": 0.019
+    }
+  },
+  "GRU Recurrent": {
+    "metrics": {
+      "rmse": 3.2885,
+      "mae": 2.3176,
+      "mape_pct": 14.41,
+      "r2_score": 0.6496,
+      "peak_traffic_mae": 6.8223,
+      "peak_traffic_mape": 25.51,
+      "under_prediction_rate_pct": 83.87,
+      "mean_deficit_gbps": 2.5931,
+      "max_error_gbps": 17.666,
+      "inference_latency_ms": 0.039
+    }
+  },
+  "Random Forest": {
+    "metrics": {
+      "rmse": 2.9143,
+      "mae": 1.942,
+      "mape_pct": 12.94,
+      "r2_score": 0.7248,
+      "peak_traffic_mae": 5.2934,
+      "peak_traffic_mape": 19.63,
+      "under_prediction_rate_pct": 68.63,
+      "mean_deficit_gbps": 2.2413,
+      "max_error_gbps": 17.4664,
+      "inference_latency_ms": 0.103
+    }
+  },
+  "Ridge Linear Reg": {
+    "metrics": {
+      "rmse": 2.7465,
+      "mae": 1.7603,
+      "mape_pct": 11.68,
+      "r2_score": 0.7556,
+      "peak_traffic_mae": 5.1992,
+      "peak_traffic_mape": 19.29,
+      "under_prediction_rate_pct": 68.0,
+      "mean_deficit_gbps": 2.0613,
+      "max_error_gbps": 15.617,
+      "inference_latency_ms": 0.001
+    }
+  },
+  "Exponential Smoothing": {
+    "metrics": {
+      "rmse": 6.5562,
+      "mae": 5.1467,
+      "mape_pct": 38.45,
+      "r2_score": -0.3926,
+      "peak_traffic_mae": 10.3936,
+      "peak_traffic_mape": 39.49,
+      "under_prediction_rate_pct": 52.23,
+      "mean_deficit_gbps": 5.0932,
+      "max_error_gbps": 17.6693,
+      "inference_latency_ms": 0.0
+    }
+  },
+  "Moving Average (SMA)": {
+    "metrics": {
+      "rmse": 7.2201,
+      "mae": 5.7991,
+      "mape_pct": 43.77,
+      "r2_score": -0.6889,
+      "peak_traffic_mae": 11.3801,
+      "peak_traffic_mape": 43.33,
+      "under_prediction_rate_pct": 54.72,
+      "mean_deficit_gbps": 5.496,
+      "max_error_gbps": 18.467,
+      "inference_latency_ms": 0.0
+    }
+  }
+}
